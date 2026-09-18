@@ -1,0 +1,47 @@
+services:
+  app:
+    image: ksk6898/homework-app:v1
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: homeworkdb
+      APP_VERSION: v1
+    networks:
+      - appnet
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: on-failure
+      update_config:
+        parallelism: 1
+        delay: 10s
+      resources:
+        limits:
+          cpus: "0.50"
+          memory: 256M
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: homeworkdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+      placement:
+        constraints: [node.role == manager]
+
+volumes:
+  db_data:
+
+networks:
+  appnet:
+    driver: overlay
